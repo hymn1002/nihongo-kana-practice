@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日语五十音图自助听写练习</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7f1 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 25px 0;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        h1 {
+            font-size: 2.4rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        /* 模式切换栏（右上角） */
+        .mode-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .mode-btn-toggle {
+            padding: 8px 16px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #ecf0f1;
+            color: #2c3e50;
+            transition: all 0.2s;
+        }
+        .mode-btn-toggle.active {
+            background: #3498db;
+            color: white;
+        }
+        .mode-btn-toggle:hover:not(.active) {
+            background: #d6dbdf;
+        }
+        .mode-selector {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .mode-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .mode-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .mode-btn {
+            padding: 14px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #3498db;
+            color: white;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+        .mode-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+            background: #2980b9;
+        }
+        .mode-btn:active {
+            transform: translateY(0);
+        }
+        .mode-btn:nth-child(2) {
+            background: #2ecc71;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+        }
+        .mode-btn:nth-child(2):hover {
+            background: #27ae60;
+            box-shadow: 0 6px 16px rgba(46, 204, 113, 0.4);
+        }
+        .quiz-section {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            margin-bottom: 30px;
+        }
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f2f6;
+        }
+        .progress {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #3498db;
+        }
+        .question-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .question-display {
+            font-size: 5rem;
+            font-weight: bold;
+            margin: 30px 0;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2c3e50;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .kana {
+            font-family: "Hiragino Kaku Gothic Pro", "Meiryo", sans-serif;
+        }
+        .romaji {
+            font-family: "Courier New", monospace;
+            font-size: 1.8rem;
+            color: #7f8c8d;
+        }
+        .audio-control {
+            margin: 25px 0;
+        }
+        .play-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #3498db;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+            transition: all 0.2s;
+        }
+        .play-btn:hover {
+            transform: scale(1.05);
+            background: #2980b9;
+        }
+        .play-btn:active {
+            transform: scale(0.95);
+        }
+        .input-group {
+            margin: 30px 0;
+        }
+        .input-label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #2c3e50;
+        }
+        .answer-input {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.4rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+        .answer-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .btn {
+            padding: 14px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .next-btn {
+            background: #3498db;
+            color: white;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+        .next-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        .result-section {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+        }
+        .result-title {
+            font-size: 1.6rem;
+            text-align: center;
+            margin-bottom: 25px;
+            color: #2c3e50;
+        }
+        .score-display {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #27ae60;
+        }
+        .accuracy-display {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 15px 0;
+            color: #3498db;
+        }
+        .answers-list {
+            margin-top: 25px;
+        }
+        .answer-item {
+            padding: 15px;
+            margin: 12px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        .answer-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        .answer-content {
+            display: flex;
+            justify-content: space-between;
+            font-family: "Courier New", monospace;
+        }
+        .correct {
+            color: #27ae60;
+        }
+        .incorrect {
+            color: #e74c3c;
+        }
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .restart-btn {
+            display: block;
+            width: 200px;
+            margin: 25px auto 0;
+            padding: 14px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .restart-btn:hover {
+            background: #8e44ad;
+            transform: translateY(-2px);
+        }
+        @media (max-width: 600px) {
+            .question-display {
+                font-size: 4rem;
+                height: 120px;
+            }
+            .mode-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            .mode-toggle {
+                position: static;
+                margin-top: 15px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🇯🇵 日语五十音图自助听写练习</h1>
+            <p class="subtitle">支持平假名、片假名、浊音（が・ざ・だ・ば）、半浊音（ぱ）——共 50+ 音节</p>
+            <!-- 右上角模式切换 -->
+            <div class="mode-toggle">
+                <button id="hiraganaModeBtn" class="mode-btn-toggle active">平假名模式</button>
+                <button id="allModeBtn" class="mode-btn-toggle">全部模式</button>
+            </div>
+        </header>
+
+        <!-- 模式选择 -->
+        <section class="mode-selector">
+            <h2 class="mode-title">请选择练习模式</h2>
+            <div class="mode-buttons">
+                <button id="listenModeBtn" class="mode-btn">🎧 听音写假名（自评核对）</button>
+                <button id="writeModeBtn" class="mode-btn">✍️ 看假名写罗马音（自动评分）</button>
+            </div>
+        </section>
+
+        <!-- 听音模式测验区 -->
+        <section id="listenQuiz" class="quiz-section">
+            <div class="quiz-header">
+                <h2>🎧 听音写假名练习</h2>
+                <div class="progress">第 <span id="listenCurrent">1</span>/5 题</div>
+            </div>
+            <div class="question-container">
+                <div class="question-display kana" id="listenKanaDisplay">—</div>
+                <div class="audio-control">
+                    <button id="listenPlayBtn" class="play-btn">▶</button>
+                </div>
+                <p>请在纸上写出听到的假名，完成后点击“下一题”</p>
+            </div>
+            <div class="action-buttons">
+                <button id="listenNextBtn" class="btn next-btn">➡ 下一题</button>
+            </div>
+        </section>
+
+        <!-- 写音模式测验区（无提交按钮，仅输入+下一题） -->
+        <section id="writeQuiz" class="quiz-section">
+            <div class="quiz-header">
+                <h2>✍️ 看假名写罗马音练习</h2>
+                <div class="progress">第 <span id="writeCurrent">1</span>/5 题</div>
+            </div>
+            <div class="question-container">
+                <div class="question-display kana" id="writeKanaDisplay">か</div>
+                <div class="input-group">
+                    <label class="input-label" for="writeAnswerInput">请输入对应的罗马音（如：ka）：</label>
+                    <input type="text" id="writeAnswerInput" class="answer-input" placeholder="例如：ka">
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button id="writeNextBtn" class="btn next-btn">➡ 下一题</button>
+            </div>
+        </section>
+
+        <!-- 结果页 -->
+        <section id="resultSection" class="result-section">
+            <h2 class="result-title">📝 练习完成！</h2>
+            <div id="scoreDisplay" class="score-display">得分：— / 5</div>
+            <div id="accuracyDisplay" class="accuracy-display">正确率：—%</div>
+            <div class="answers-list" id="answersList">
+                <!-- 动态生成 -->
+            </div>
+            <div id="feedback" class="feedback"></div>
+            <button id="restartBtn" class="restart-btn">🔄 重新开始</button>
+        </section>
+    </div>
+
+    <script>
+        // 原始完整数据（含平假名、片假名、罗马音）
+        const kanaData = [
+            // 清音
+            { hira: 'あ', kata: 'ア', romaji: 'a' },
+            { hira: 'い', kata: 'イ', romaji: 'i' },
+            { hira: 'う', kata: 'ウ', romaji: 'u' },
+            { hira: 'え', kata: 'エ', romaji: 'e' },
+            { hira: 'お', kata: 'オ', romaji: 'o' },
+            
+            { hira: 'か', kata: 'カ', romaji: 'ka' },
+            { hira: 'き', kata: 'キ', romaji: 'ki' },
+            { hira: 'く', kata: 'ク', romaji: 'ku' },
+            { hira: 'け', kata: 'ケ', romaji: 'ke' },
+            { hira: 'こ', kata: 'コ', romaji: 'ko' },
+
+            { hira: 'さ', kata: 'サ', romaji: 'sa' },
+            { hira: 'し', kata: 'シ', romaji: 'shi' },
+            { hira: 'す', kata: 'ス', romaji: 'su' },
+            { hira: 'せ', kata: 'セ', romaji: 'se' },
+            { hira: 'そ', kata: 'ソ', romaji: 'so' },
+
+            { hira: 'た', kata: 'タ', romaji: 'ta' },
+            { hira: 'ち', kata: 'チ', romaji: 'chi' },
+            { hira: 'つ', kata: 'ツ', romaji: 'tsu' },
+            { hira: 'て', kata: 'テ', romaji: 'te' },
+            { hira: 'と', kata: 'ト', romaji: 'to' },
+
+            { hira: 'な', kata: 'ナ', romaji: 'na' },
+            { hira: 'に', kata: 'ニ', romaji: 'ni' },
+            { hira: 'ぬ', kata: 'ヌ', romaji: 'nu' },
+            { hira: 'ね', kata: 'ネ', romaji: 'ne' },
+            { hira: 'の', kata: 'ノ', romaji: 'no' },
+
+            { hira: 'は', kata: 'ハ', romaji: 'ha' },
+            { hira: 'ひ', kata: 'ヒ', romaji: 'hi' },
+            { hira: 'ふ', kata: 'フ', romaji: 'fu' },
+            { hira: 'へ', kata: 'ヘ', romaji: 'he' },
+            { hira: 'ほ', kata: 'ホ', romaji: 'ho' },
+
+            { hira: 'ま', kata: 'マ', romaji: 'ma' },
+            { hira: 'み', kata: 'ミ', romaji: 'mi' },
+            { hira: 'む', kata: 'ム', romaji: 'mu' },
+            { hira: 'め', kata: 'メ', romaji: 'me' },
+            { hira: 'も', kata: 'モ', romaji: 'mo' },
+
+            { hira: 'や', kata: 'ヤ', romaji: 'ya' },
+            { hira: 'ゆ', kata: 'ユ', romaji: 'yu' },
+            { hira: 'よ', kata: 'ヨ', romaji: 'yo' },
+
+            { hira: 'ら', kata: 'ラ', romaji: 'ra' },
+            { hira: 'り', kata: 'リ', romaji: 'ri' },
+            { hira: 'る', kata: 'ル', romaji: 'ru' },
+            { hira: 'れ', kata: 'レ', romaji: 're' },
+            { hira: 'ろ', kata: 'ロ', romaji: 'ro' },
+
+            { hira: 'わ', kata: 'ワ', romaji: 'wa' },
+            { hira: 'を', kata: 'ヲ', romaji: 'wo' },
+            { hira: 'ん', kata: 'ン', romaji: 'n' },
+
+            // 浊音
+            { hira: 'が', kata: 'ガ', romaji: 'ga' },
+            { hira: 'ぎ', kata: 'ギ', romaji: 'gi' },
+            { hira: 'ぐ', kata: 'グ', romaji: 'gu' },
+            { hira: 'げ', kata: 'ゲ', romaji: 'ge' },
+            { hira: 'ご', kata: 'ゴ', romaji: 'go' },
+
+            { hira: 'ざ', kata: 'ザ', romaji: 'za' },
+            { hira: 'じ', kata: 'ジ', romaji: 'ji' },
+            { hira: 'ず', kata: 'ズ', romaji: 'zu' },
+            { hira: 'ぜ', kata: 'ゼ', romaji: 'ze' },
+            { hira: 'ぞ', kata: 'ゾ', romaji: 'zo' },
+
+            { hira: 'だ', kata: 'ダ', romaji: 'da' },
+            { hira: 'ぢ', kata: 'ヂ', romaji: 'ji' }, // 同じ
+            { hira: 'づ', kata: 'ヅ', romaji: 'zu' }, // 同ず
+            { hira: 'で', kata: 'デ', romaji: 'de' },
+            { hira: 'ど', kata: 'ド', romaji: 'do' },
+
+            { hira: 'ば', kata: 'バ', romaji: 'ba' },
+            { hira: 'び', kata: 'ビ', romaji: 'bi' },
+            { hira: 'ぶ', kata: 'ブ', romaji: 'bu' },
+            { hira: 'べ', kata: 'ベ', romaji: 'be' },
+            { hira: 'ぼ', kata: 'ボ', romaji: 'bo' },
+
+            // 半浊音
+            { hira: 'ぱ', kata: 'パ', romaji: 'pa' },
+            { hira: 'ぴ', kata: 'ピ', romaji: 'pi' },
+            { hira: 'ぷ', kata: 'プ', romaji: 'pu' },
+            { hira: 'ぺ', kata: 'ペ', romaji: 'pe' },
+            { hira: 'ぽ', kata: 'ポ', romaji: 'po' },
+        ];
+
+        // 当前状态
+        let currentMode = null; // 'listen' or 'write'
+        let currentQuestionIndex = 0;
+        let quizQuestions = [];
+        let userAnswers = [];
+        let kanaMode = 'all'; // 'hiragana' or 'all'
+
+        // DOM 元素
+        const listenQuiz = document.getElementById('listenQuiz');
+        const writeQuiz = document.getElementById('writeQuiz');
+        const resultSection = document.getElementById('resultSection');
+        const listenKanaDisplay = document.getElementById('listenKanaDisplay');
+        const writeKanaDisplay = document.getElementById('writeKanaDisplay');
+        const listenCurrent = document.getElementById('listenCurrent');
+        const writeCurrent = document.getElementById('writeCurrent');
+        const writeAnswerInput = document.getElementById('writeAnswerInput');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const accuracyDisplay = document.getElementById('accuracyDisplay');
+        const answersList = document.getElementById('answersList');
+        const feedback = document.getElementById('feedback');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // 按钮元素
+        const listenModeBtn = document.getElementById('listenModeBtn');
+        const writeModeBtn = document.getElementById('writeModeBtn');
+        const listenPlayBtn = document.getElementById('listenPlayBtn');
+        const listenNextBtn = document.getElementById('listenNextBtn');
+        const writeNextBtn = document.getElementById('writeNextBtn');
+        const hiraganaModeBtn = document.getElementById('hiraganaModeBtn');
+        const allModeBtn = document.getElementById('allModeBtn');
+
+        // 初始化：根据当前 kanaMode 过滤题目
+        function generateQuiz(mode) {
+            let candidates = [...kanaData];
+            if (kanaMode === 'hiragana') {
+                // 仅保留平假名（即所有 hira 字段非空且不为占位符）
+                candidates = candidates.filter(q => q.hira && q.hira.length > 0);
+            }
+            const shuffled = candidates.sort(() => Math.random() - 0.5);
+            quizQuestions = shuffled.slice(0, 5);
+            currentQuestionIndex = 0;
+            userAnswers = [];
+        }
+
+        // 显示题目（听音模式）→ 显示占位符，不显示假名
+        function showListenQuestion() {
+            listenKanaDisplay.textContent = '—';
+            listenCurrent.textContent = currentQuestionIndex + 1;
+        }
+
+        // 显示题目（写音模式）
+        function showWriteQuestion() {
+            const q = quizQuestions[currentQuestionIndex];
+            // 平假名模式下只显示平假名；全部模式随机显示平/片
+            let displayChar;
+            if (kanaMode === 'hiragana') {
+                displayChar = q.hira;
+            } else {
+                displayChar = Math.random() > 0.5 ? q.hira : q.kata;
+            }
+            writeKanaDisplay.textContent = displayChar;
+            writeCurrent.textContent = currentQuestionIndex + 1;
+            writeAnswerInput.value = '';
+            writeAnswerInput.focus();
+        }
+
+        // 播放音频模拟
+        function playKanaSound() {
+            const q = quizQuestions[currentQuestionIndex];
+            listenPlayBtn.innerHTML = '🔊';
+            setTimeout(() => {
+                listenPlayBtn.innerHTML = '▶';
+            }, 800);
+        }
+
+        // 收集用户答案（在“下一题”时保存当前输入）
+        function saveCurrentAnswer() {
+            if (currentMode === 'write') {
+                const userAns = writeAnswerInput.value.trim();
+                userAnswers.push(userAns);
+            }
+        }
+
+        // 显示结果页（统一在全部5题完成后调用）
+        function showResults() {
+            // 计算得分与正确率
+            let correctCount = 0;
+            const total = 5;
+            const results = [];
+            
+            quizQuestions.forEach((q, i) => {
+                const userAns = userAnswers[i] || '';
+                const correctAns = q.romaji.toLowerCase();
+                const isCorrect = userAns.toLowerCase() === correctAns;
+                if (isCorrect) correctCount++;
+                
+                results.push({
+                    hira: q.hira,
+                    kata: q.kata,
+                    user: userAns,
+                    correct: correctAns,
+                    isCorrect
+                });
+            });
+
+            const score = correctCount;
+            const accuracy = Math.round((correctCount / total) * 100);
+
+            scoreDisplay.textContent = `得分：${score} / ${total}`;
+            accuracyDisplay.textContent = `正确率：${accuracy}%`;
+            
+            // 生成答案对照表
+            answersList.innerHTML = '';
+            results.forEach((r, i) => {
+                const li = document.createElement('div');
+                li.className = 'answer-item';
+                li.innerHTML = `
+                    <div class="answer-header">第 ${i + 1} 题：${r.hira} / ${r.kata}</div>
+                    <div class="answer-content">
+                        <span>你的答案：<span class="${r.isCorrect ? 'correct' : 'incorrect'}">${r.user || '（未作答）'}</span></span>
+                        <span>正确答案：${r.correct}</span>
+                    </div>
+                `;
+                answersList.appendChild(li);
+            });
+
+            // 🐷 猪系反馈（按正确率）
+            let feedbackText = '';
+            if (score === 5) {
+                feedbackText = '🐷 你真是一头聪明的小猪';
+                feedback.style.background = '#d4edda';
+                feedback.style.color = '#155724';
+            } else if (score === 4) {
+                feedbackText = '🐷 猪生仍需努力';
+                feedback.style.background = '#d1ecf1';
+                feedback.style.color = '#0c5460';
+            } else {
+                feedbackText = '🐷 你这头猪！笨！';
+                feedback.style.background = '#f8d7da';
+                feedback.style.color = '#721c24';
+            }
+
+            feedback.textContent = feedbackText;
+
+            // 切换视图
+            listenQuiz.style.display = 'none';
+            writeQuiz.style.display = 'none';
+            resultSection.style.display = 'block';
+        }
+
+        // 开始测验
+        function startQuiz(mode) {
+            currentMode = mode;
+            generateQuiz(mode);
+            
+            if (mode === 'listen') {
+                listenQuiz.style.display = 'block';
+                writeQuiz.style.display = 'none';
+                resultSection.style.display = 'none';
+                showListenQuestion();
+            } else {
+                writeQuiz.style.display = 'block';
+                listenQuiz.style.display = 'none';
+                resultSection.style.display = 'none';
+                showWriteQuestion();
+            }
+        }
+
+        // 事件监听器
+        listenModeBtn.addEventListener('click', () => startQuiz('listen'));
+        writeModeBtn.addEventListener('click', () => startQuiz('write'));
+
+        listenPlayBtn.addEventListener('click', playKanaSound);
+        
+        listenNextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < 4) {
+                currentQuestionIndex++;
+                showListenQuestion();
+            } else {
+                // 听音模式：显示所有5题的正确答案供核对（无评分）
+                resultSection.style.display = 'block';
+                listenQuiz.style.display = 'none';
+                writeQuiz.style.display = 'none';
+
+                scoreDisplay.textContent = '听音练习完成 —— 请自行核对答案';
+                accuracyDisplay.textContent = '';
+                answersList.innerHTML = '';
+                quizQuestions.forEach((q, i) => {
+                    const li = document.createElement('div');
+                    li.className = 'answer-item';
+                    li.innerHTML = `
+                        <div class="answer-header">第 ${i + 1} 题</div>
+                        <div class="answer-content">
+                            <span>假名：<span class="correct">${q.hira} / ${q.kata}</span></span>
+                            <span>罗马音：${q.romaji}</span>
+                        </div>
+                    `;
+                    answersList.appendChild(li);
+                });
+                feedback.textContent = '✅ 继续坚持练习，听力会越来越敏锐！';
+                feedback.style.background = '#d1ecf1';
+                feedback.style.color = '#0c5460';
+            }
+        });
+
+        writeNextBtn.addEventListener('click', () => {
+            // ✅ 每次点击“下一题”时，先保存当前答案
+            saveCurrentAnswer();
+
+            if (currentQuestionIndex < 4) {
+                currentQuestionIndex++;
+                showWriteQuestion();
+            } else {
+                // ✅ 全部5题完成后，统一显示评分与对照表
+                showResults();
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            resultSection.style.display = 'none';
+            // 回到模式选择页
+            listenQuiz.style.display = 'none';
+            writeQuiz.style.display = 'none';
+        });
+
+        // 键盘支持：Enter 触发“下一题”
+        writeAnswerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                writeNextBtn.click();
+            }
+        });
+
+        // 平假名/全部模式切换
+        hiraganaModeBtn.addEventListener('click', () => {
+            kanaMode = 'hiragana';
+            hiraganaModeBtn.classList.add('active');
+            allModeBtn.classList.remove('active');
+        });
+
+        allModeBtn.addEventListener('click', () => {
+            kanaMode = 'all';
+            allModeBtn.classList.add('active');
+            hiraganaModeBtn.classList.remove('active');
+        });
+
+        // 页面加载后默认聚焦第一个按钮（无障碍友好）
+        document.addEventListener('DOMContentLoaded', () => {
+            listenModeBtn.focus();
+        });
+    </script>
+</body>
+</html>
